@@ -1,0 +1,37 @@
+#!/bin/ksh
+#
+# you MUST make this script executable, do the following
+#    chmod +x this_script_name
+#
+
+print "<HTML>"
+print "<HEAD>"
+print "<TITLE>A simple cgi script</TITLE>"
+print "</HEAD>"
+print "<BODY bgcolor=\"#dddddd\" text=\"#000000\">"
+
+print "<H1>This is a simple cgi script</H1>"
+
+dd=$(/bin/date)		# execute /bin/date and store the result in the variable dd
+my_homedir=$(echo $HOME)
+
+print "<table border=1>"
+
+print "<tr><td>"
+print "<font color=red><B> $dd </B></font>"
+print "</td></tr>"
+
+print "<tr><td>"
+print "My home directory is: <B>$my_homedir</B>"
+print "</td></tr>"
+
+print "<tr><td>"
+print "This is a link to Dr. Deligiannidis' <A HREF=\"http://www.cs.uga.edu/~ldeligia\">home page</A>."
+print "</td></tr>"
+
+print "</table>"
+
+
+
+print "</BODY>"
+print "</HTML>"
