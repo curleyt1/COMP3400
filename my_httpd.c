@@ -2,7 +2,7 @@
 //
 // To compile: 			gcc -o my_httpd my_httpd.c -lnsl -lsocket
 //
-// To start your server:	./my_httpd 2000 .www			
+// To start your server:	./my_httpd 2000 .www
 //
 // To Kill your server:		kill_my_httpd
 //
@@ -49,7 +49,7 @@ int TypeOfFile(char *fullPathToFile) {
 
         if( stat(fullPathToFile, &buf) != 0 ) {
 		perror("stat()");
-		fprintf(stderr, "[ERROR] stat() on file: |%s|\n", 
+		fprintf(stderr, "[ERROR] stat() on file: |%s|\n",
 						fullPathToFile);
 		fflush(stderr);
                 exit(-1);
@@ -58,7 +58,7 @@ int TypeOfFile(char *fullPathToFile) {
 
         if( S_ISREG(buf.st_mode) )
 		return(REG_FILE);
-        else if( S_ISDIR(buf.st_mode) ) 
+        else if( S_ISDIR(buf.st_mode) )
 		return(DIRECTORY);
 
 	return(ERROR_FILE);
@@ -90,13 +90,13 @@ void SendDataBin(char *fileToSend, int sock, char *home, char *content) {
 	sprintf(fullPathToFile, "%s/%s/%s", home, content, fileToSend);
 
 
-	
+
 	/*
-	 * - If the requested file is a directory, append the 'index.html' 
-    	 *   file to the end of the fullPathToFile 
+	 * - If the requested file is a directory, append the 'index.html'
+    	 *   file to the end of the fullPathToFile
 	 *   (Use TypeOfFile(fullPathToFile))
 	 * - If the requested file is a regular file, do nothing and proceed
-	 * - else your client requested something other than a directory 
+	 * - else your client requested something other than a directory
 	 *   or a reqular file
 	 */
 	/* TODO 5 */
@@ -116,7 +116,7 @@ void SendDataBin(char *fileToSend, int sock, char *home, char *content) {
 
 
 ////////////////////////////////////////////////////////////////////
-// Extract the file request from the request lines the client sent 
+// Extract the file request from the request lines the client sent
 // to us.  Make sure you NULL terminate your result.
 ////////////////////////////////////////////////////////////////////
 void ExtractFileRequest(char *req, char *buff) {
@@ -127,30 +127,30 @@ void ExtractFileRequest(char *req, char *buff) {
 ////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////
 int main(int argc, char **argv, char **environ) {
-  	pid_t pid;		/* pid of child */
+	pid_t pid;		/* pid of child */
 	int sockid;		/* our initial socket */
 	int PORT;		/* Port number, used by 'bind' */
-	char content[128];	/* Your directory that contains your web 
-				   content such as .www in 
+	char content[128];	/* Your directory that contains your web
+				   content such as .www in
 				   your home directory */
 	char myhome[128];	/* Your home directory */
 				/* (gets filled in by GetMyHomeDir() */
-	/* 
+	/*
 	 * structs used for bind, accept..
 	 */
-  	struct sockaddr_in server_addr, client_addr; 
+  	struct sockaddr_in server_addr, client_addr;
 
 	char file_request[256];	/* where we store the requested file name */
         int one=1;		/* used to set socket options */
 
 
-	/* 
-	 * Get my home directory from the environment 
+	/*
+	 * Get my home directory from the environment
 	 */
-	GetMyHomeDir(myhome, environ);	
+	GetMyHomeDir(myhome, environ);
 
 	if( argc != 3 ) {
-		fprintf(stderr, "USAGE: %s <port number> <content directory>\n", 
+		fprintf(stderr, "USAGE: %s <port number> <content directory>\n",
 								argv[0]);
 		exit(-1);
 	}
@@ -183,22 +183,33 @@ int main(int argc, char **argv, char **environ) {
 
 	/* TODO 1 */
 
+    // AF_INET and SOCK_STREAM are part of the networking libraries.
+    sockid = socket(AF_INET, SOCK_STREAM, 0);
+
+    // Call bind(). Throw an error if bind does not succeed
+    if (bind(sockid, (struct sockaddr *) &server_addr, sizeof(server_addr)) < 0) {
+        perror("ERROR on binding");
+        exit(1);
+    }
+
+
+  listen(sockid,5);
 
 	signal(SIGCHLD, SIG_IGN);
 
 
-	/* 
+	/*
 	 * - accept a new connection and fork.
 	 * - If you are the child process,  process the request and exit.
-	 * - If you are the parent close the socket and come back to 
+	 * - If you are the parent close the socket and come back to
          *   accept another connection
 	 */
   	while (1) {
-		/* 
+		/*
 		 * socket that will be used for communication
-		 * between the client and this server (the child) 
+		 * between the client and this server (the child)
 		 */
-		int newsock;		
+		int newsock;
 
 		/*
 		 * Get the size of this structure, could pass NULL if we
@@ -208,10 +219,11 @@ int main(int argc, char **argv, char **environ) {
 
 		/*
 		 * Accept a connection from a client (a web browser)
-		 * accept the new connection. newsock will be used for the 
+		 * accept the new connection. newsock will be used for the
 		 * child to communicate to the client (browser)
 		 */
 		 /* TODO 2 */
+     newsock = accept(sockid, (struct sockaddr *)&client_addr, &client_len);
 
     		if (newsock < 0) {
 			perror("accept");
