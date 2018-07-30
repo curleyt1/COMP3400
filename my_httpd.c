@@ -68,11 +68,11 @@ int TypeOfFile(char *fullPathToFile) {
 ////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////
 void SendDataBin(char *fileToSend, int sock, char *home, char *content) {
-        int f;
+    int f;
 	char fullPathToFile[256];
 	char Header[1024];
-        int s;
-        char buffer[10];
+    int s;
+    char buffer[10];
 	int fret;		/* return value of TypeOfFile() */
 
 
@@ -82,23 +82,26 @@ void SendDataBin(char *fileToSend, int sock, char *home, char *content) {
 	 */
 	strcpy(Header, "HTTP/1.0 200 OK\nContent-length: 112032\nContent-type: text/html\n\n");
 
-
-
 	/*
 	 * Build the full path to the file
 	 */
 	sprintf(fullPathToFile, "%s/%s/%s", home, content, fileToSend);
-
-
+	printf("%s\n", fullPathToFile);
 
 	/*
 	 * - If the requested file is a directory, append the 'index.html'
-    	 *   file to the end of the fullPathToFile
+   	 *   file to the end of the fullPathToFile
 	 *   (Use TypeOfFile(fullPathToFile))
 	 * - If the requested file is a regular file, do nothing and proceed
 	 * - else your client requested something other than a directory
 	 *   or a reqular file
 	 */
+	if (TypeOfFile(fullPathToFile) == DIRECTORY) {
+		printf("%s\n", "Directory");
+	}else {
+		printf("%s\n", "Regular file");
+	}
+
 	/* TODO 5 */
 
 
@@ -115,6 +118,7 @@ void SendDataBin(char *fileToSend, int sock, char *home, char *content) {
 }
 
 
+
 ////////////////////////////////////////////////////////////////////
 // Extract the file request from the request lines the client sent
 // to us.  Make sure you NULL terminate your result.
@@ -122,6 +126,11 @@ void SendDataBin(char *fileToSend, int sock, char *home, char *content) {
 void ExtractFileRequest(char *req, char *buff) {
 
 	/* TODO 4  */
+	size_t buff_size = sizeof(buff);
+	for (size_t i = 0; i < buff_size; i++) {
+		printf("%s\n", "buff[]");
+	}
+
 }
 
 ////////////////////////////////////////////////////////////////////
@@ -170,7 +179,7 @@ int main(int argc, char **argv, char **environ) {
 		char t[128];
 		sprintf(t, "echo %d > %s.pid\n", pid, argv[0]);
 		system(t);
-    		exit(0);
+    	exit(0);
   	}
 
   	// setsid();
@@ -186,14 +195,23 @@ int main(int argc, char **argv, char **environ) {
     // AF_INET and SOCK_STREAM are part of the networking libraries.
     sockid = socket(AF_INET, SOCK_STREAM, 0);
 
+    // set all server_addr in socket address structure to zero, and fill in the relevant data members
+    memset(&server_addr, 0, sizeof(server_addr));
+    server_addr.sin_family      = AF_INET;
+    server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    server_addr.sin_port        = htons(PORT);
+   
     // Call bind(). Throw an error if bind does not succeed
     if (bind(sockid, (struct sockaddr *) &server_addr, sizeof(server_addr)) < 0) {
         perror("ERROR on binding");
         exit(1);
     }
-
-
-  listen(sockid,5);
+      // Listen on socket list_s
+    if( (listen(sockid, 5)) == -1)
+    {
+        fprintf(stderr, "Error Listening\n");
+        exit(1);
+    } 
 
 	signal(SIGCHLD, SIG_IGN);
 
@@ -223,9 +241,9 @@ int main(int argc, char **argv, char **environ) {
 		 * child to communicate to the client (browser)
 		 */
 		 /* TODO 2 */
-     newsock = accept(sockid, (struct sockaddr *)&client_addr, &client_len);
+     	newsock = accept(sockid, (struct sockaddr *)&client_addr, &client_len);
 
-    		if (newsock < 0) {
+    	if (newsock < 0) {
 			perror("accept");
 			exit(-1);
 		}
@@ -241,11 +259,10 @@ int main(int argc, char **argv, char **environ) {
 			 * I am the Child
 			 */
 			int r;
-      			char buff[1024];
+      		char buff[1024];
 			int read_so_far = 0;
 			char ref[1024], rowRef[1024];
 
-			close(sockid);
 
 			memset(buff, 0, 1024);
 
@@ -254,7 +271,6 @@ int main(int argc, char **argv, char **environ) {
 			 * 'use a while loop'
 			 */
 			/* TODO 3 */
-
 //
 // What you may get from the client:
 //			GET / HTTP/1.0
@@ -263,22 +279,37 @@ int main(int argc, char **argv, char **environ) {
 //			Host: spiff:6789
 //			Accept: image/gif, image/x-xbitmap, image/jpeg, image/pjpeg, * /*
 //
+			//   //Receive a message from client
+		    size_t read_size;
+		    while(read_size  = recv(newsock , buff , 1024 , 0) > 0) {
+		    	printf("\n%s\n", buff);
+		    	break;
+		    }
+
+		    if(read_size == 0)
+		    {
+		        puts("Client disconnected");
+		        fflush(stdout);
+		    }
+		    else if(read_size == -1)
+		    {
+		        perror("recv failed");
+		    }
+
 //
 // Write to client
 //
 //			You should write to the client an HTTP response and then the
 //			requested file, if appropriate. A response may look like:
 //
-//			HTTP/1.0 200 OK
+//			HTTP/1.0 200 OKx`
 //			Content-length: 2032
 //			Content-type: text/html
 //			[single blank line necessary here]
 //			[document follows]
-//
-
-
-
-			ExtractFileRequest(file_request, buff);
+//	
+			// ExtractFileRequest(file_request, buff);
+			strcpy(file_request, "test/");
 
 			printf("** File Requested: |%s|\n", file_request);
 			fflush(stdout);
