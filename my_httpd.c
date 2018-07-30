@@ -126,10 +126,7 @@ void SendDataBin(char *fileToSend, int sock, char *home, char *content) {
 void ExtractFileRequest(char *req, char *buff) {
 
 	/* TODO 4  */
-	size_t buff_size = sizeof(buff);
-	for (size_t i = 0; i < buff_size; i++) {
-		printf("%s\n", "buff[]");
-	}
+	strcpy(req, "index.html");
 
 }
 
@@ -214,7 +211,6 @@ int main(int argc, char **argv, char **environ) {
     } 
 
 	signal(SIGCHLD, SIG_IGN);
-
 
 	/*
 	 * - accept a new connection and fork.
@@ -308,8 +304,8 @@ int main(int argc, char **argv, char **environ) {
 //			[single blank line necessary here]
 //			[document follows]
 //	
-			// ExtractFileRequest(file_request, buff);
-			strcpy(file_request, "test/");
+		    printf("%s\n", "Extract file request");
+			ExtractFileRequest(file_request, buff);
 
 			printf("** File Requested: |%s|\n", file_request);
 			fflush(stdout);
