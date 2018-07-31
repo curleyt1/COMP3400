@@ -64,29 +64,39 @@ int TypeOfFile(char *fullPathToFile) {
 	return(ERROR_FILE);
 }
 
+char* concat(const char *s1, const char *s2)
+{
+    char *result = malloc(strlen(s1) + strlen(s2) + 1); // +1 for the null-terminator
+    // in real code you would check for errors in malloc here
+    strcpy(result, s1);
+    strcat(result, s2);
+    return result;
+}
 
 ////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////
 void SendDataBin(char *fileToSend, int sock, char *home, char *content) {
     int f;
 	char fullPathToFile[256];
-	char Header[1024];
+	size_t BUFFER_SIZE = 1024;
+	char Header[BUFFER_SIZE];
     int s;
-    char buffer[10];
+    char buffer[BUFFER_SIZE];
 	int fret;		/* return value of TypeOfFile() */
 
 
+    memset(Header, 0, BUFFER_SIZE);
+	memset(buffer, 0, BUFFER_SIZE);
 
 	/*
 	 * Build the header
 	 */
-	strcpy(Header, "HTTP/1.0 200 OK\nContent-length: 112032\nContent-type: text/html\n\n");
+	strcpy(Header, "HTTP/1.0 200 OK\nContent-type: text/html\n\n");
 
 	/*
 	 * Build the full path to the file
 	 */
 	sprintf(fullPathToFile, "%s/%s/%s", home, content, fileToSend);
-	printf("%s\n", fullPathToFile);
 
 	/*
 	 * - If the requested file is a directory, append the 'index.html'
@@ -96,15 +106,12 @@ void SendDataBin(char *fileToSend, int sock, char *home, char *content) {
 	 * - else your client requested something other than a directory
 	 *   or a reqular file
 	 */
-	if (TypeOfFile(fullPathToFile) == DIRECTORY) {
-		printf("%s\n", "Directory");
-	}else {
-		printf("%s\n", "Regular file");
-	}
-
 	/* TODO 5 */
-
-
+	if (TypeOfFile(fullPathToFile) == DIRECTORY) {
+		printf("%s\n", "directory");
+		strcpy(fullPathToFile, concat(fullPathToFile, "index.html"));
+	}
+	printf("%s\n", fullPathToFile);
 
 	/*
 	 * 1. Send the header (use write())
@@ -114,6 +121,25 @@ void SendDataBin(char *fileToSend, int sock, char *home, char *content) {
 	 */
 
 	 /* TODO 6 */
+
+	// Send the header (use write())
+	write(sock, Header, sizeof(Header));
+	int c;
+	FILE *file;
+	// open the requested file (use open())
+	file = fopen(fullPathToFile, "r");
+	int  i = 0;
+	if (file) {
+	    while ((c = getc(file)) != EOF) {
+	    	buffer[i] = c;
+	    	i++;
+		}
+		// now send the requested file (use write())
+		write(sock, buffer, BUFFER_SIZE);
+		//close the file (use close())
+		close(sock);
+		fclose(file);
+	}
 
 }
 
@@ -126,8 +152,22 @@ void SendDataBin(char *fileToSend, int sock, char *home, char *content) {
 void ExtractFileRequest(char *req, char *buff) {
 
 	/* TODO 4  */
-	strcpy(req, "index.html");
-
+	//printf("%s\n", buff);
+	int i;
+	int size = 1024;
+	char fn[size];
+	for (i = 0; i < size; i++) {
+		//printf("%c\t",buff[i]);
+			if (i >= 5) {
+				fn[i - 5] = buff[i];
+				printf("%c\n", fn[i - 5]);
+				if (fn[i - 5] == ' ') {
+					fn[i - 5] = '\0';
+					break;
+				}
+			}
+	}
+	strcpy(req, fn);
 }
 
 ////////////////////////////////////////////////////////////////////
@@ -278,7 +318,6 @@ int main(int argc, char **argv, char **environ) {
 			//   //Receive a message from client
 		    size_t read_size;
 		    while(read_size  = recv(newsock , buff , 1024 , 0) > 0) {
-		    	printf("\n%s\n", buff);
 		    	break;
 		    }
 
@@ -303,8 +342,7 @@ int main(int argc, char **argv, char **environ) {
 //			Content-type: text/html
 //			[single blank line necessary here]
 //			[document follows]
-//	
-		    printf("%s\n", "Extract file request");
+//			
 			ExtractFileRequest(file_request, buff);
 
 			printf("** File Requested: |%s|\n", file_request);

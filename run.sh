@@ -1,4 +1,4 @@
 
 
-gcc my_httpd.c -w
-./a.out 3000 /Desktop/COMP3400/www
+gcc my_httpd.c
+./a.out 8000 Desktop/COMP3400/www
