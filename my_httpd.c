@@ -126,21 +126,41 @@ void SendDataBin(char *fileToSend, int sock, char *home, char *content) {
 	write(sock, Header, sizeof(Header));
 	int c;
 	FILE *file;
+  const char *dot;
 	// open the requested file (use open())
-	file = fopen(fullPathToFile, "r");
-	int  i = 0;
-	if (file) {
-	    while ((c = getc(file)) != EOF) {
-	    	buffer[i] = c;
-	    	i++;
-		}
-		// now send the requested file (use write())
-		write(sock, buffer, BUFFER_SIZE);
-		//close the file (use close())
-		close(sock);
-		fclose(file);
-	}
 
+  // TODO: refactor below, D.R.Y.
+  // IF request is cgi script
+
+  if((dot = strrchr(fullPathToFile,'.')) != NULL ) {
+    if(strcmp(dot,".cgi") == 0) {
+      file = popen(fullPathToFile, "r");
+      int  i = 0;
+      if (file) {
+        while ((c = getc(file)) != EOF) {
+          buffer[i] = c;
+          i++;
+        }
+      }
+      pclose(file);
+    }
+  }
+  // else if it is a normal file
+  else {
+	  file = fopen(fullPathToFile, "r");
+   	int  i = 0;
+   	if (file) {
+   	    while ((c = getc(file)) != EOF) {
+   	    	buffer[i] = c;
+   	    	i++;
+   		}
+    }
+    fclose(file);
+  }
+	// now send the requested file (use write())
+	write(sock, buffer, BUFFER_SIZE);
+	//close the file (use close())
+	close(sock);
 }
 
 
@@ -237,7 +257,7 @@ int main(int argc, char **argv, char **environ) {
     server_addr.sin_family      = AF_INET;
     server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
     server_addr.sin_port        = htons(PORT);
-   
+
     // Call bind(). Throw an error if bind does not succeed
     if (bind(sockid, (struct sockaddr *) &server_addr, sizeof(server_addr)) < 0) {
         perror("ERROR on binding");
@@ -248,7 +268,7 @@ int main(int argc, char **argv, char **environ) {
     {
         fprintf(stderr, "Error Listening\n");
         exit(1);
-    } 
+    }
 
 	signal(SIGCHLD, SIG_IGN);
 
@@ -342,7 +362,7 @@ int main(int argc, char **argv, char **environ) {
 //			Content-type: text/html
 //			[single blank line necessary here]
 //			[document follows]
-//			
+//
 			ExtractFileRequest(file_request, buff);
 
 			printf("** File Requested: |%s|\n", file_request);
