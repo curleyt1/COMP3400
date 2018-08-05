@@ -132,18 +132,16 @@ void SendDataBin(char *fileToSend, int sock, char *home, char *content) {
   // TODO: refactor below, D.R.Y.
   // IF request is cgi script
 
-  if((dot = strrchr(fullPathToFile,'.')) != NULL ) {
-    if(strcmp(dot,".cgi") == 0) {
-      file = popen(fullPathToFile, "r");
-      int  i = 0;
-      if (file) {
-        while ((c = getc(file)) != EOF) {
-          buffer[i] = c;
-          i++;
-        }
+  if(((dot = strrchr(fullPathToFile,'.')) != NULL ) && (strcmp(dot,".cgi") == 0) ) {
+    file = popen(fullPathToFile, "r");
+    int  i = 0;
+    if (file) {
+      while ((c = getc(file)) != EOF) {
+        buffer[i] = c;
+        i++;
       }
-      pclose(file);
     }
+    pclose(file);
   }
   // else if it is a normal file
   else {
