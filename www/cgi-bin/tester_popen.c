@@ -33,7 +33,7 @@ main(int argc, char **argv) {
 	 * read the man page for fgets()
 	 */
 	while ( fgets(line, MAXLINELENGTH, fp) != NULL) {
-		printf("%s", line);
+		printf("%s\n", line);
 	}
 
 	/*
