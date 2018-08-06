@@ -130,8 +130,8 @@ void SendDataBin(char *fileToSend, int sock, char *home, char *content) {
 	// open the requested file (use open())
 
   // TODO: refactor below, D.R.Y.
-  // IF request is cgi script
-
+  // IF request is cgi script: use popen() to fork process and execute program.
+  // "r" type when calling popen means that the program output is written.
   if(((dot = strrchr(fullPathToFile,'.')) != NULL ) && (strcmp(dot,".cgi") == 0) ) {
     file = popen(fullPathToFile, "r");
     int  i = 0;
@@ -143,7 +143,7 @@ void SendDataBin(char *fileToSend, int sock, char *home, char *content) {
     }
     pclose(file);
   }
-  // else if it is a normal file
+  // Other file types (such as HTML, TXT) simply read with fopen().
   else {
 	  file = fopen(fullPathToFile, "r");
    	int  i = 0;
@@ -155,7 +155,7 @@ void SendDataBin(char *fileToSend, int sock, char *home, char *content) {
     }
     fclose(file);
   }
-	// now send the requested file (use write())
+	// now send the requested content (use write())
 	write(sock, buffer, BUFFER_SIZE);
 	//close the file (use close())
 	close(sock);
