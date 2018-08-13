@@ -1,8 +1,9 @@
 /////////////////////////////////////////////////////////////////////////
 //
 // To compile: 			gcc -o my_httpd my_httpd.c -lnsl -lsocket
+// Some systems may not require the lnsl and lsocket options,
 //
-// To start your server:	./my_httpd 2000 .www
+// To start your server:	./my_httpd 2000 ./www
 //
 // To Kill your server:		kill_my_httpd
 //
